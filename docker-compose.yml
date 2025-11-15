@@ -1,0 +1,66 @@
+version: "3.9"
+services:
+  db:
+    image: ankane/pgvector
+    container_name: db
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: ragdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - default
+
+  app_frontend:
+    build:
+      context: ./cloudilic-assessment-frontend
+      dockerfile: Dockerfile
+    container_name: 'frontend'
+    networks:
+      - default
+    volumes:
+      - ./.repository/build/cloudilic-assessment-frontend:/usr/src/app/prod
+
+  app_backend:
+    build:
+      context: ./cloudilic-assessment-backend
+      dockerfile: Dockerfile
+    container_name: 'app_backend'
+    ports:
+      - 4000:4000
+    networks:
+      - default
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - db
+
+  nginx:
+    image: jonasal/nginx-certbot:latest
+    ports:
+      - 9015:9015
+    networks:
+      - default
+    environment:
+      - CERTBOT_EMAIL=amr.badawy13@gmail.com
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/user_conf.d
+      - ./.repository/nginx_secrets:/etc/letsencrypt
+      # Serve built frontend assets directly from nginx
+      - ./.repository/build/cloudilic-assessment-frontend:/usr/share/nginx/html/cloudilic-assessment-frontend:ro
+    depends_on:
+      - db
+      - app_backend
+      - app_frontend
+    container_name: "nginx"
+
+
+volumes:
+  pgdata:
+
+networks:
+  default:
+    driver: bridge
