@@ -41,7 +41,7 @@ services:
   nginx:
     image: jonasal/nginx-certbot:latest
     ports:
-      - 8080:80  # Change host port from 80 to 8080
+      - 8085:80  # Change host port from 80 to 8080
       - 443:443
       - 9015:9015
     networks:
