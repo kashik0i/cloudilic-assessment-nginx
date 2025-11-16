@@ -41,6 +41,8 @@ services:
   nginx:
     image: jonasal/nginx-certbot:latest
     ports:
+      - 80:80
+      - 443:443
       - 9015:9015
     networks:
       - default
